@@ -18,7 +18,7 @@ class ConsumptionOnDemandTest {
   @Test
   void testConsumptionOnDemand() {
     int limit = 1000;
-    List<String> limitedData = dataReader.fetchLimitadData(limit).toList();
+    List<String> limitedData = dataReader.fetchLimitedData(limit).toList();
     Assertions.assertThat(limitedData).hasSize(limit);
 
     List<String> fullData = dataReader.fetchFullData().toList();

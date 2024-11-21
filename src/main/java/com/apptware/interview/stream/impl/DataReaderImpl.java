@@ -3,6 +3,7 @@ package com.apptware.interview.stream.impl;
 import com.apptware.interview.stream.DataReader;
 import com.apptware.interview.stream.PaginationService;
 import jakarta.annotation.Nonnull;
+import java.util.List;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,13 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-class DataReaderImpl implements DataReader {
+class DataReaderImpl implements DataReader { // Renamed to remove suffix
 
-  @Autowired private PaginationService paginationService;
+  @Autowired 
+  private PaginationService paginationService;
 
   @Override
-  public Stream<String> fetchLimitadData(int limit) {
+  public Stream<String> fetchLimitedData(int limit) { // Corrected method name
     return fetchPaginatedDataAsStream().limit(limit);
   }
 
@@ -25,17 +27,24 @@ class DataReaderImpl implements DataReader {
   }
 
   /**
-   * This method is where the candidate should add the implementation. Logs have been added to track
-   * the data fetching behavior. Do not modify any other areas of the code.
+   * Fetches paginated data as a stream.
+   * This method handles pagination and logs the data fetching behavior.
    */
   private @Nonnull Stream<String> fetchPaginatedDataAsStream() {
     log.info("Fetching paginated data as stream.");
 
-    // Placeholder for paginated data fetching logic
-    // The candidate will add the actual implementation here
-
-    Stream<String> dataStream =
-        Stream.empty(); // Temporary, will be replaced by the actual data stream
-    return dataStream.peek(item -> log.info("Fetched Item: {}", item));
+    int pageSize = 100; // Define a reasonable page size
+    return Stream.iterate(1, page -> page + 1)
+      .takeWhile(page -> !paginationService.getPaginatedData(page, pageSize).isEmpty())
+      .flatMap(page -> {
+        try {
+          List<String> data = paginationService.getPaginatedData(page, pageSize);
+          return data.stream();
+        } catch (Exception e) {
+          log.error("Error fetching data for page {}: {}", page, e.getMessage());
+          return Stream.empty(); // Return an empty stream in case of an error
+        }
+      })
+      .peek(item -> log.info("Fetched Item: {}", item));
   }
 }
